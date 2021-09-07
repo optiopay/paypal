@@ -1,8 +1,13 @@
-[![Go Report Card](https://goreportcard.com/badge/plutov/paypal)](https://goreportcard.com/report/plutov/paypal)
-[![Build Status](https://travis-ci.org/plutov/paypal.svg?branch=master)](https://travis-ci.org/plutov/paypal)
-[![Godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/plutov/paypal)
-
 # Go client for PayPal REST API
+
+Based on https://github.com/plutov/paypal
+
+## Changes
+
+- Use golang.org/x/oauth2 for auth
+- Added some webhook type constants
+- changed package name
+- removed GetAccessToken
 
 ## Coverage
 

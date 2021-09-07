@@ -19,20 +19,8 @@ var testCardID = "CARD-54E6956910402550WKGRL6EA"
 var testProductId = ""   // will be fetched in  func TestProduct(t *testing.T)
 var testBillingPlan = "" // will be fetched in  func TestSubscriptionPlans(t *testing.T)
 
-func TestGetAccessToken(t *testing.T) {
-	c, _ := NewClient(testClientID, testSecret, APIBaseSandBox)
-	token, err := c.GetAccessToken(context.Background())
-	if err != nil {
-		t.Errorf("Not expected error for GetAccessToken(), got %s", err.Error())
-	}
-	if token.Token == "" {
-		t.Errorf("Expected non-empty token for GetAccessToken()")
-	}
-}
-
 func TestGetUserInfo(t *testing.T) {
 	c, _ := NewClient(testClientID, testSecret, APIBaseSandBox)
-	c.GetAccessToken(context.Background())
 
 	u, err := c.GetUserInfo(context.Background(), "openid")
 	if u.ID != testUserID || err != nil {
@@ -42,7 +30,6 @@ func TestGetUserInfo(t *testing.T) {
 
 func TestCreateVenmoPayout(t *testing.T) {
 	c, _ := NewClient(testClientID, testSecret, APIBaseSandBox)
-	c.GetAccessToken(context.Background())
 
 	payout := Payout{
 		SenderBatchHeader: &SenderBatchHeader{
@@ -72,7 +59,6 @@ func TestCreateVenmoPayout(t *testing.T) {
 
 func TestCreatePayout(t *testing.T) {
 	c, _ := NewClient(testClientID, testSecret, APIBaseSandBox)
-	c.GetAccessToken(context.Background())
 
 	payout := Payout{
 		SenderBatchHeader: &SenderBatchHeader{
@@ -99,7 +85,6 @@ func TestCreatePayout(t *testing.T) {
 
 func TestStoreCreditCard(t *testing.T) {
 	c, _ := NewClient(testClientID, testSecret, APIBaseSandBox)
-	c.GetAccessToken(context.Background())
 
 	r1, e1 := c.StoreCreditCard(context.Background(), CreditCard{})
 	if e1 == nil || r1 != nil {
@@ -122,7 +107,6 @@ func TestStoreCreditCard(t *testing.T) {
 
 func TestDeleteCreditCard(t *testing.T) {
 	c, _ := NewClient(testClientID, testSecret, APIBaseSandBox)
-	c.GetAccessToken(context.Background())
 
 	e1 := c.DeleteCreditCard(context.Background(), "")
 	if e1 == nil {
@@ -132,7 +116,6 @@ func TestDeleteCreditCard(t *testing.T) {
 
 func TestGetCreditCard(t *testing.T) {
 	c, _ := NewClient(testClientID, testSecret, APIBaseSandBox)
-	c.GetAccessToken(context.Background())
 
 	r1, e1 := c.GetCreditCard(context.Background(), "BBGGG")
 	if e1 == nil || r1 != nil {
@@ -142,7 +125,6 @@ func TestGetCreditCard(t *testing.T) {
 
 func TestGetCreditCards(t *testing.T) {
 	c, _ := NewClient(testClientID, testSecret, APIBaseSandBox)
-	c.GetAccessToken(context.Background())
 
 	r1, e1 := c.GetCreditCards(context.Background(), nil)
 	if e1 != nil || r1 == nil {
@@ -160,7 +142,6 @@ func TestGetCreditCards(t *testing.T) {
 
 func TestPatchCreditCard(t *testing.T) {
 	c, _ := NewClient(testClientID, testSecret, APIBaseSandBox)
-	c.GetAccessToken(context.Background())
 
 	r1, e1 := c.PatchCreditCard(context.Background(), testCardID, nil)
 	if e1 == nil || r1 != nil {
@@ -171,7 +152,6 @@ func TestPatchCreditCard(t *testing.T) {
 // Creates, gets, and deletes single webhook
 func TestCreateAndGetWebhook(t *testing.T) {
 	c, _ := NewClient(testClientID, testSecret, APIBaseSandBox)
-	c.GetAccessToken(context.Background())
 
 	payload := &CreateWebhookRequest{
 		URL: "https://example.com/paypal_webhooks",
@@ -201,7 +181,6 @@ func TestCreateAndGetWebhook(t *testing.T) {
 // Creates, updates, and deletes single webhook
 func TestCreateAndUpdateWebhook(t *testing.T) {
 	c, _ := NewClient(testClientID, testSecret, APIBaseSandBox)
-	c.GetAccessToken(context.Background())
 
 	creationPayload := &CreateWebhookRequest{
 		URL: "https://example.com/paypal_webhooks",
@@ -242,7 +221,6 @@ func TestCreateAndUpdateWebhook(t *testing.T) {
 
 func TestListWebhooks(t *testing.T) {
 	c, _ := NewClient(testClientID, testSecret, APIBaseSandBox)
-	c.GetAccessToken(context.Background())
 
 	_, err := c.ListWebhooks(context.Background(), AncorTypeApplication)
 	if err != nil {
@@ -252,7 +230,6 @@ func TestListWebhooks(t *testing.T) {
 
 func TestProduct(t *testing.T) {
 	c, _ := NewClient(testClientID, testSecret, APIBaseSandBox)
-	c.GetAccessToken(context.Background())
 
 	//create a product
 	productData := Product{
@@ -289,7 +266,6 @@ func TestProduct(t *testing.T) {
 
 func TestSubscriptionPlans(t *testing.T) {
 	c, _ := NewClient(testClientID, testSecret, APIBaseSandBox)
-	c.GetAccessToken(context.Background())
 
 	//create a product
 	newSubscriptionPlan := SubscriptionPlan{
@@ -384,7 +360,6 @@ func TestSubscriptionPlans(t *testing.T) {
 
 func TestSubscription(t *testing.T) {
 	c, _ := NewClient(testClientID, testSecret, APIBaseSandBox)
-	c.GetAccessToken(context.Background())
 
 	newSubscription := SubscriptionBase{
 		PlanID: testBillingPlan,
@@ -404,7 +379,6 @@ func TestSubscription(t *testing.T) {
 
 func TestGetWebhookEventTypes(t *testing.T) {
 	c, _ := NewClient(testClientID, testSecret, APIBaseSandBox)
-	c.GetAccessToken(context.Background())
 
 	r, err := c.GetWebhookEventTypes(context.Background())
 	assert.Equal(t, nil, err)

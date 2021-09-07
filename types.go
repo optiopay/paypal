@@ -8,6 +8,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"golang.org/x/oauth2/clientcredentials"
 )
 
 const (
@@ -16,9 +18,6 @@ const (
 
 	// APIBaseLive points to the live version of the API
 	APIBaseLive = "https://api.paypal.com"
-
-	// RequestNewTokenBeforeExpiresIn is used by SendWithAuth and try to get new Token when it's about to expire
-	RequestNewTokenBeforeExpiresIn = time.Duration(60) * time.Second
 )
 
 // Possible values for `no_shipping` in InputFields
@@ -87,10 +86,22 @@ const (
 // https://developer.paypal.com/docs/api/orders/v2/#definition-application_context
 
 const (
+	// Payment
+	EventPaymentAuthorizationCreated string = "PAYMENT.AUTHORIZATION.CREATED"
+	EventPaymentAuthorizationVoided  string = "PAYMENT.AUTHORIZATION.VOIDED"
+	EventPaymentCaptureCompleted     string = "PAYMENT.CAPTURE.COMPLETED"
+	EventPaymentCaptureDenied        string = "PAYMENT.CAPTURE.DENIED"
+	EventPaymentCapturePending       string = "PAYMENT.CAPTURE.PENDING"
+	EventPaymentCaptureRefunded      string = "PAYMENT.CAPTURE.REFUNDED"
+	EventPaymentCaptureReversed      string = "PAYMENT.CAPTURE.REVERSED"
+
+	EventOrderCompleted string = "CHECKOUT.ORDER.COMPLETED"
+	EventOrderApproved  string = "CHECKOUT.ORDER.APPROVED"
+
+	EventPaymentOrderCancelled string = "PAYMENT.ORDER.CANCELLED"
+	EventPaymentOrderCreated   string = "PAYMENT.ORDER.CREATED"
+
 	EventCheckoutOrderApproved         string = "CHECKOUT.ORDER.APPROVED"
-	EventPaymentCaptureCompleted       string = "PAYMENT.CAPTURE.COMPLETED"
-	EventPaymentCaptureDenied          string = "PAYMENT.CAPTURE.DENIED"
-	EventPaymentCaptureRefunded        string = "PAYMENT.CAPTURE.REFUNDED"
 	EventMerchantOnboardingCompleted   string = "MERCHANT.ONBOARDING.COMPLETED"
 	EventMerchantPartnerConsentRevoked string = "MERCHANT.PARTNER-CONSENT.REVOKED"
 )
@@ -394,7 +405,6 @@ type (
 	// Client represents a Paypal REST API Client
 	Client struct {
 		sync.Mutex
-		Client               *http.Client
 		ClientID             string
 		Secret               string
 		APIBase              string
@@ -402,6 +412,7 @@ type (
 		Token                *TokenResponse
 		tokenExpiresAt       time.Time
 		returnRepresentation bool
+		ccCfg                *clientcredentials.Config
 	}
 
 	// CreditCard struct

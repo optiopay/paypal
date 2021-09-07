@@ -8,6 +8,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
+
+	"golang.org/x/oauth2"
 )
 
 var testBillingAgreementID = "BillingAgreementID"
@@ -457,6 +460,15 @@ func TestTypePaymentPatchMarshal(t *testing.T) {
 // ServeHTTP implements http.Handler
 func (ts *webprofileTestServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ts.t.Log(r.RequestURI)
+	if r.RequestURI == "/v1/oauth2/token" {
+		if r.Method == "POST" {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(oauth2.Token{
+				AccessToken: "123",
+				Expiry:      time.Now().Add(time.Hour),
+			})
+		}
+	}
 	if r.RequestURI == "/v1/payment-experience/web-profiles" {
 		if r.Method == "POST" {
 			ts.create(w, r)

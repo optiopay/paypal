@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"time"
+
+	"golang.org/x/oauth2/clientcredentials"
 )
 
 // NewClient returns new Client struct
@@ -19,42 +21,16 @@ func NewClient(clientID string, secret string, APIBase string) (*Client, error) 
 	if clientID == "" || secret == "" || APIBase == "" {
 		return nil, errors.New("ClientID, Secret and APIBase are required to create a Client")
 	}
-
 	return &Client{
-		Client:   &http.Client{},
+		ccCfg: &clientcredentials.Config{
+			ClientID:     clientID,
+			ClientSecret: secret,
+			TokenURL:     APIBase + "/v1/oauth2/token",
+		},
 		ClientID: clientID,
 		Secret:   secret,
 		APIBase:  APIBase,
 	}, nil
-}
-
-// GetAccessToken returns struct of TokenResponse
-// No need to call SetAccessToken to apply new access token for current Client
-// Endpoint: POST /v1/oauth2/token
-func (c *Client) GetAccessToken(ctx context.Context) (*TokenResponse, error) {
-	buf := bytes.NewBuffer([]byte("grant_type=client_credentials"))
-	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s%s", c.APIBase, "/v1/oauth2/token"), buf)
-	if err != nil {
-		return &TokenResponse{}, err
-	}
-
-	req.Header.Set("Content-type", "application/x-www-form-urlencoded")
-
-	response := &TokenResponse{}
-	err = c.SendWithBasicAuth(req, response)
-
-	// Set Token fur current Client
-	if response.Token != "" {
-		c.Token = response
-		c.tokenExpiresAt = time.Now().Add(time.Duration(response.ExpiresIn) * time.Second)
-	}
-
-	return response, err
-}
-
-// SetHTTPClient sets *http.Client to current client
-func (c *Client) SetHTTPClient(client *http.Client) {
-	c.Client = client
 }
 
 // SetAccessToken sets saved token to current client
@@ -99,7 +75,10 @@ func (c *Client) Send(req *http.Request, v interface{}) error {
 		req.Header.Set("Prefer", "return=representation")
 	}
 
-	resp, err = c.Client.Do(req)
+	// get client
+	client := c.ccCfg.Client(req.Context())
+
+	resp, err = client.Do(req)
 	c.log(req, resp)
 
 	if err != nil {
@@ -134,25 +113,6 @@ func (c *Client) Send(req *http.Request, v interface{}) error {
 // making the main request
 // client.Token will be updated when changed
 func (c *Client) SendWithAuth(req *http.Request, v interface{}) error {
-	c.Lock()
-	// Note: Here we do not want to `defer c.Unlock()` because we need `c.Send(...)`
-	// to happen outside of the locked section.
-
-	if c.Token != nil {
-		if !c.tokenExpiresAt.IsZero() && c.tokenExpiresAt.Sub(time.Now()) < RequestNewTokenBeforeExpiresIn {
-			// c.Token will be updated in GetAccessToken call
-			if _, err := c.GetAccessToken(req.Context()); err != nil {
-				c.Unlock()
-				return err
-			}
-		}
-
-		req.Header.Set("Authorization", "Bearer "+c.Token.Token)
-	}
-
-	// Unlock the client mutex before sending the request, this allows multiple requests
-	// to be in progress at the same time.
-	c.Unlock()
 	return c.Send(req, v)
 }
 
